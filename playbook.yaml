@@ -1,0 +1,9 @@
+---
+- name: "install monitoring"  
+  hosts: server
+  become: true
+  roles:
+    - prometheus
+    - node-exporter
+    - elastic-kibana
+    - fluentbit
