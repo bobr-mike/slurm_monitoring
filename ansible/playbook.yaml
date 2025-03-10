@@ -1,0 +1,15 @@
+---
+- name: "install prometheus"  
+  hosts: server
+  become: true
+  roles:
+    - prometheus
+    # - elastic-kibana
+    # - fluentbit
+
+
+- name: "install exorters"  
+  hosts: nodes
+  become: true
+  roles:
+    - node-exporter

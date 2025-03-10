@@ -1,11 +1,10 @@
 ---
-- name: Ensure Prometheus user and group exist
+
+- name: Create User prometheus
   user:
     name: "{{ prometheus_user }}"
-    group: "{{ prometheus_group }}"
-    system: yes
     create_home: no
-    state: present
+    shell: /bin/false
 
 - name: Create directories
   file:
@@ -19,15 +18,10 @@
     - "{{ prometheus_config_dir }}"
     - "{{ prometheus_data_dir }}"
 
-- name: Download and install Prometheus
-  get_url:
-    url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
-    dest: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
-    checksum: "sha256:your_checksum_here"
 
 - name: Extract Prometheus
   unarchive:
-    src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    src: https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz
     dest: "{{ prometheus_install_dir }}"
     remote_src: yes
     extra_opts: ["--strip-components=1"]
