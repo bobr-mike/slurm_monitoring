@@ -4,6 +4,6 @@
   become: true
   roles:
     - prometheus
-    - node-exporter
-    - elastic-kibana
-    - fluentbit
+    # - node-exporter
+    # - elastic-kibana
+    # - fluentbit
