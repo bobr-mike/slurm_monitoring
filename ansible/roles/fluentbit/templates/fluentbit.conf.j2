@@ -1,0 +1,18 @@
+[SERVICE]
+    flush        1
+    log_level    info
+    daemon       off
+    parsers_file parsers.conf
+    plugins_file plugins.conf
+
+[INPUT]
+    Name systemd
+    Tag  journald.*
+
+[OUTPUT]
+    Name  es
+    Match *
+    Host  {{ elasticsearch_host }}
+    Port  9200
+    Index {{ elasticsearch_index }}
+    Replace_Dots On

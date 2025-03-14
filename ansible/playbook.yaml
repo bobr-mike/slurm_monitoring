@@ -3,9 +3,9 @@
   hosts: server
   become: true
   roles:
-    - prometheus
-    # - elastic-kibana
-    # - fluentbit
+     - prometheus
+     - elastic-kibana
+
 
 
 - name: "install exorters"  
@@ -13,3 +13,4 @@
   become: true
   roles:
     - node-exporter
+    - fluentbit

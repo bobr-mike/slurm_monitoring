@@ -1,12 +1,12 @@
 ---
 - name: Create User exporter
-  user:
+  ansible.builtin.user:
     name: "{{ node_exporter_user }}"
     create_home: no
     shell: /bin/false
 
 - name: Create directories
-  file:
+  ansible.builtin.file:
     path: "{{ node_exporter_install_dir }}"
     state: directory
     owner: "{{ node_exporter_user }}"
@@ -14,7 +14,7 @@
     mode: '0755'
 
 - name: Extract Node Exporter
-  unarchive:
+  ansible.builtin.unarchive:
     src: https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz
     dest: "{{ node_exporter_install_dir }}"
     remote_src: yes
@@ -23,7 +23,7 @@
     group: "{{ node_exporter_group }}"    
 
 - name: Copy Node Exporter systemd service file
-  template:
+  ansible.builtin.template:
     src: node_exporter.service.j2
     dest: /etc/systemd/system/node_exporter.service
     owner: root
@@ -32,13 +32,13 @@
   notify: Reload systemd
 
 - name: Ensure Node Exporter service is enabled and started
-  service:
+  ansible.builtin.service:
     name: node_exporter
     state: started
     enabled: yes
 
 - name: Add Node Exporter target to Prometheus configuration
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "{{ prometheus_config_dir }}/prometheus.yml"
     marker: "# {mark} ANSIBLE MANAGED BLOCK - Node Exporter Targets"
     block: |
@@ -50,11 +50,11 @@
             {% endfor %}
     create: yes
     insertafter: "^scrape_configs:"
-  delegate_to: "{{ groups['server'][0] }}"  # Выполняем на сервере Prometheus
+  delegate_to: "{{ groups['server'][0] }}" 
   notify: Restart Prometheus
 
 - name: Ensure Prometheus service is enabled and started
-  service:
+  ansible.builtin.service:
     name: prometheus
     state: started
     enabled: yes

@@ -1,0 +1,15 @@
+[Unit]
+Description=Kibana
+Documentation=https://www.elastic.co/guide/en/kibana/current/index.html
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ kibana_user }}
+Group={{ kibana_group }}
+Environment="NODE_ENV=production"
+ExecStart={{ kibana_install_dir }}/bin/kibana
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

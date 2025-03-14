@@ -1,0 +1,18 @@
+[Unit]
+Description=Elasticsearch
+Documentation=https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ elasticsearch_user }}
+Group={{ elasticsearch_group }}
+Environment="ES_HOME={{ elasticsearch_install_dir }}"
+Environment="ES_PATH_CONF={{ elasticsearch_config_dir }}"
+Environment="ES_JAVA_OPTS=-Xms{{ elasticsearch_heap_size }} -Xmx{{ elasticsearch_heap_size }}"
+ExecStart={{ elasticsearch_install_dir }}/bin/elasticsearch
+Restart=always
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

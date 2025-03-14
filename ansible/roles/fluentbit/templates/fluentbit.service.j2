@@ -1,0 +1,13 @@
+[Unit]
+Description=Fluent Bit
+Documentation=https://docs.fluentbit.io/manual/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ fluentbit_user }}
+ExecStart={{ fluentbit_install_dir }}/bin/fluent-bit -c {{ fluentbit_config_dir }}/fluent-bit.conf
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

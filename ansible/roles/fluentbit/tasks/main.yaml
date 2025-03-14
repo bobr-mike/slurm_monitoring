@@ -1,0 +1,55 @@
+---
+- name: Ensure Fluent Bit user and group exist
+  ansible.builtin.user:
+    name: "{{ fluentbit_user }}"
+    system: yes
+    create_home: no
+    state: present
+
+- name: Create directories for Fluent Bit
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ fluentbit_user }}"
+    mode: '0755'
+  loop:
+    - "{{ fluentbit_install_dir }}"
+    - "{{ fluentbit_config_dir }}"
+
+- name: Add Fluent Bit repository
+  ansible.builtin.apt_repository:
+    repo: "deb [trusted=yes] https://packages.fluentbit.io/ubuntu/{{ ansible_distribution_release }} {{ ansible_distribution_release }} main"
+    state: present
+    filename: fluentbit
+    update_cache: yes
+
+- name: Install Fluent Bit
+  ansible.builtin.apt:
+    name: "fluent-bit={{ fluentbit_version }}"
+    state: present
+    update_cache: yes
+    
+- name: Copy Fluent Bit systemd service file
+  ansible.builtin.template:
+    src: fluentbit.service.j2
+    dest: /etc/systemd/system/fluent-bit.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload systemd
+
+- name: Copy Fluent Bit configuration file
+  ansible.builtin.template:
+    src: fluentbit.conf.j2
+    dest: "{{ fluentbit_config_dir }}/fluent-bit.conf"
+    owner: "{{ fluentbit_user }}"
+    mode: '0644'
+  vars:
+    elasticsearch_host: "{{ hostvars[groups['server'][0]].ansible_host | default(groups['server'][0]) }}"
+  notify: Restart Fluent Bit
+
+- name: Ensure Fluent Bit service is enabled and started
+  ansible.builtin.service:
+    name: fluent-bit
+    state: started
+    enabled: yes

@@ -1,0 +1,117 @@
+---
+- name: Ensure Elasticsearch and Kibana users and groups exist
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    system: yes
+    create_home: no
+    state: present
+  loop:
+    -  name: "{{ elasticsearch_user }}" 
+    -  name: "{{ kibana_user }}"
+
+- name: Create directories for Elasticsearch
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    mode: '0755'
+  loop:
+    - "{{ elasticsearch_install_dir }}"
+    - "{{ elasticsearch_config_dir }}"
+    - "{{ elasticsearch_data_dir }}"
+    - "{{ elasticsearch_log_dir }}"
+
+- name: Create directories for Kibana
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ kibana_user }}"
+    group: "{{ kibana_group }}"
+    mode: '0755'
+  loop:
+    - "{{ kibana_install_dir }}"
+    - "{{ kibana_config_dir }}"
+    - "{{ kibana_log_dir }}"
+
+
+- name: Install prerequisites (apt-transport-https and ca-certificates)
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+    state: present
+    update_cache: yes
+
+# - name: Add Elastic Stack GPG key
+#   ansible.builtin.apt_key:
+#     url: "https://mirror.yandex.ru/mirrors/elastic/7/dists/stable/Release.gpg"
+#     state: present
+
+- name: Add Elastic Stack repository using Yandex mirror
+  ansible.builtin.apt_repository:
+    repo: "deb [trusted=yes] https://mirror.yandex.ru/mirrors/elastic/7/ stable main"
+    state: present
+    filename: elasticstack
+    update_cache: yes
+
+- name: Install Elasticsearch
+  ansible.builtin.apt:
+    name: "elasticsearch={{ elasticsearch_version }}"
+    state: present
+    update_cache: yes
+
+- name: Install Kibana
+  ansible.builtin.apt:
+    name: "kibana={{ kibana_version }}"
+    state: present
+    update_cache: yes
+
+
+- name: Copy Elasticsearch systemd service file
+  ansible.builtin.template:
+    src: elasticsearch.service.j2
+    dest: /etc/systemd/system/elasticsearch.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload systemd
+
+- name: Copy Kibana systemd service file
+  ansible.builtin.template:
+    src: kibana.service.j2
+    dest: /etc/systemd/system/kibana.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload systemd
+
+- name: Copy Elasticsearch configuration file
+  ansible.builtin.template:
+    src: elasticsearch.yml.j2
+    dest: "{{ elasticsearch_config_dir }}/elasticsearch.yml"
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_group }}"
+    mode: '0644'
+  notify: Restart Elasticsearch
+
+- name: Copy Kibana configuration file
+  ansible.builtin.template:
+    src: kibana.yml.j2
+    dest: "{{ kibana_config_dir }}/kibana.yml"
+    owner: "{{ kibana_user }}"
+    group: "{{ kibana_group }}"
+    mode: '0644'
+  notify: Restart Kibana
+
+- name: Ensure Elasticsearch service is enabled and started
+  ansible.builtin.service:
+    name: elasticsearch
+    state: started
+    enabled: yes
+
+- name: Ensure Kibana service is enabled and started
+  ansible.builtin.service:
+    name: kibana
+    state: started
+    enabled: yes
