@@ -1,12 +1,12 @@
 ---
-- name: Ensure Fluent Bit user and group exist
+- name: Create user
   ansible.builtin.user:
     name: "{{ fluentbit_user }}"
     system: yes
     create_home: no
     state: present
 
-- name: Create directories for Fluent Bit
+- name: Create directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -48,7 +48,7 @@
     elasticsearch_host: "{{ hostvars[groups['server'][0]].ansible_host | default(groups['server'][0]) }}"
   notify: Restart Fluent Bit
 
-- name: Ensure Fluent Bit service is enabled and started
+- name: Service restart
   ansible.builtin.service:
     name: fluent-bit
     state: started

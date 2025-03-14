@@ -1,6 +1,6 @@
 ---
 
-- name: Create User prometheus
+- name: Create User 
   ansible.builtin.user:
     name: "{{ prometheus_user }}"
     create_home: no
@@ -28,7 +28,7 @@
     owner: "{{ prometheus_user }}"
     group: "{{ prometheus_group }}"
 
-- name: Copy Prometheus systemd service file
+- name: Template prometheus.service
   ansible.builtin.template:
     src: prometheus.service.j2
     dest: /etc/systemd/system/prometheus.service
@@ -46,7 +46,7 @@
     mode: '0644'
   notify: Restart Prometheus
 
-- name: Ensure Prometheus service is enabled and started
+- name: Service restart
   ansible.builtin.service:
     name: prometheus
     state: started

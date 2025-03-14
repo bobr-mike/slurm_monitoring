@@ -1,5 +1,5 @@
 ---
-- name: Ensure Elasticsearch and Kibana users and groups exist
+- name: Create users
   ansible.builtin.user:
     name: "{{ item.name }}"
     system: yes
@@ -35,7 +35,7 @@
     - "{{ kibana_log_dir }}"
 
 
-- name: Install prerequisites (apt-transport-https and ca-certificates)
+- name: Install prerequisites
   ansible.builtin.apt:
     name:
       - apt-transport-https
@@ -43,17 +43,13 @@
     state: present
     update_cache: yes
 
-# - name: Add Elastic Stack GPG key
-#   ansible.builtin.apt_key:
-#     url: "https://mirror.yandex.ru/mirrors/elastic/7/dists/stable/Release.gpg"
-#     state: present
-
-- name: Add Elastic Stack repository using Yandex mirror
+- name: Add Yandex mirror
   ansible.builtin.apt_repository:
-    repo: "deb [trusted=yes] https://mirror.yandex.ru/mirrors/elastic/7/ stable main"
+    repo: "deb [trusted=yes] https://mirror.yandex.ru/mirrors/elastic/{{ elasticsearch_version.split('.')[0] }}/ stable main"
     state: present
     filename: elasticstack
     update_cache: yes
+
 
 - name: Install Elasticsearch
   ansible.builtin.apt:
@@ -104,13 +100,13 @@
     mode: '0644'
   notify: Restart Kibana
 
-- name: Ensure Elasticsearch service is enabled and started
+- name: Service restart Elastic
   ansible.builtin.service:
     name: elasticsearch
     state: started
     enabled: yes
 
-- name: Ensure Kibana service is enabled and started
+- name: Service restart Kibana
   ansible.builtin.service:
     name: kibana
     state: started
